@@ -19,11 +19,39 @@ namespace mathcc
     {
         public:
             libnum()=default;
+            libnum(std::vector<T> &A,std::vector<T> &B,std::pair<int,int> &Adim, std::pair<int,int> &Bdim);
+            libnum(std::initializer_list<T>&& A,std::initializer_list<T>&& B,std::pair<int,int> &Adim, std::pair<int,int> &Bdim);
         private:
+            std::vector<T> _x;
             std::vector<T> _A;
             std::vector<T> _B;
-            std::vector<T> _x;
+
+            std::pair<int,int> &Adim;
+            std::pair<int,int> &Bdim;
     };
+
+    template<class T>
+    requires _IntegralChk<T>
+    libnum<T>::libnum(std::vector<T> &A,std::vector<T> &B,std::pair<int,int> &Adim, std::pair<int,int> &Bdim)
+    {
+        //Reserve something for the solution
+        _x.reserve(Adim.first * Adim.second);
+        _A =std::move(A);
+        _B =std::move(B);
+        this->Adim= std::move(Adim);
+        this->Bdim= std::move(Bdim);
+    }
+
+    template<class T>
+    requires _IntegralChk<T>
+    libnum<T>::libnum(std::initializer_list<T>&& A,std::initializer_list<T>&& B,std::pair<int,int> &Adim, std::pair<int,int> &Bdim)
+    {
+        _x.reserve(Adim.first * Adim.second);
+        this->Adim= std::move(Adim);
+        this->Bdim= std::move(Bdim);
+    }
+
+    
 };
     
 #endif //_LIBNUM
