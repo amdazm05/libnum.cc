@@ -18,17 +18,25 @@ namespace mathcc
     class libnum
     {
         public:
-            libnum()=default;
+            libnum();
             libnum(std::vector<T> &A,std::vector<T> &B,std::pair<int,int> &Adim, std::pair<int,int> &Bdim);
             libnum(std::initializer_list<T>&& A,std::initializer_list<T>&& B,std::pair<int,int> &Adim, std::pair<int,int> &Bdim);
+            ~libnum();
         private:
             std::vector<T> _x;
             std::vector<T> _A;
             std::vector<T> _B;
 
-            std::pair<int,int> &Adim;
-            std::pair<int,int> &Bdim;
+            std::pair<int,int> Adim;
+            std::pair<int,int> Bdim;
     };
+
+    template<class T>
+    requires _IntegralChk<T>
+    libnum<T>::libnum()
+    {
+        // Default constructor
+    }
 
     template<class T>
     requires _IntegralChk<T>
@@ -49,6 +57,14 @@ namespace mathcc
         _x.reserve(Adim.first * Adim.second);
         this->Adim= std::move(Adim);
         this->Bdim= std::move(Bdim);
+    }
+
+
+    template<class T>
+    requires _IntegralChk<T>
+    libnum<T>::~libnum()
+    {
+        
     }
 
     
