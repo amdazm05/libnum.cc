@@ -54,7 +54,21 @@ namespace mathcc
     requires _IntegralChk<T>
     libnum<T>::libnum(std::initializer_list<T>&& A,std::initializer_list<T>&& B,std::pair<int,int> &Adim, std::pair<int,int> &Bdim)
     {
-        _x.reserve(Adim.first * Adim.second);
+        // following a Row into column convention 
+        // the missing terms have the same size as the vector X that is to be computed
+        _x.reserve(Bdim.first * Bdim.second);
+        _A.reserve(Adim.first * Adim.second);
+        _B.reserve(Bdim.first * Bdim.second);
+
+        for (T i : A) 
+        {
+            _A.emplace_back(std::move(i));
+        }
+
+        for(T i : B)
+        {
+            _A.emplace_back(std::move(i));
+        }
         this->Adim= std::move(Adim);
         this->Bdim= std::move(Bdim);
     }
