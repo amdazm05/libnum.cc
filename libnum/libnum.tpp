@@ -20,7 +20,7 @@ namespace mathcc
         public:
             libnum();
             libnum(std::vector<T> &A,std::vector<T> &B,std::pair<int,int> &Adim, std::pair<int,int> &Bdim);
-            libnum(std::initializer_list<T>&& A,std::initializer_list<T>&& B,std::pair<int,int> &Adim, std::pair<int,int> &Bdim);
+            libnum(std::initializer_list<T> A,std::initializer_list<T> B,std::pair<int,int> Adim, std::pair<int,int> Bdim);
             ~libnum();
         private:
             std::vector<T> _x;
@@ -52,7 +52,7 @@ namespace mathcc
 
     template<class T>
     requires _IntegralChk<T>
-    libnum<T>::libnum(std::initializer_list<T>&& A,std::initializer_list<T>&& B,std::pair<int,int> &Adim, std::pair<int,int> &Bdim)
+    libnum<T>::libnum(std::initializer_list<T> A,std::initializer_list<T> B,const std::pair<int,int> Adim,const std::pair<int,int> Bdim)
     {
         // following a Row into column convention 
         // the missing terms have the same size as the vector X that is to be computed
