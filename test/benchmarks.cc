@@ -16,12 +16,22 @@ static void BENCH_MARK_VECTOR_MOVE(benchmark::State& state)
   {
     std::vector<int> A = {1,2,3,4,5,6};
     std::vector<int> B = {1,2,3,4,5,6};
-    
-    std::pair<int,int> dimA = {3,2};
-    std::pair<int,int> dimB = {3,2};
 
-    mathcc::libnum<int> e(A,B,dimA,dimB);
+    mathcc::libnum<int> e(A,B,{3,2},{3,2});
   }
 }
 BENCHMARK(BENCH_MARK_VECTOR_MOVE)->Iterations(200000);
+
+static void BENCH_MARK_SOLVE_BASIC(benchmark::State& state) 
+{
+  std::vector<int> sol;
+  for (auto _ : state)
+  {
+    mathcc::libnum<int> h({1,2,6,4},{5,13},{2,2},{2,1});
+    sol = h.solve();
+  }
+}
+BENCHMARK(BENCH_MARK_SOLVE_BASIC)->Iterations(200000);
+
+
 BENCHMARK_MAIN();
