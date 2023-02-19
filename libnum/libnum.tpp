@@ -10,6 +10,15 @@
 
 namespace mathcc
 {
+    enum Solvers :  uint8_t 
+    {
+        LU_DECOMPOSITION,
+        GAUSIAN_ELIMINATION,
+        CHOLESKY_METHOD,
+        GAUS_JORDAN,
+        MATRIX_INVERSION
+    };
+
     template <typename T>
     concept _IntegralChk = requires(T type)
     {
@@ -26,6 +35,8 @@ namespace mathcc
             libnum(std::vector<T> &A,std::vector<T> &B,std::pair<int,int> &&Adim, std::pair<int,int> &&Bdim);
             libnum(std::initializer_list<T> &&A,std::initializer_list<T> &&B,std::pair<int,int> &&Adim, std::pair<int,int> &&Bdim);
             std::vector<T> solve();
+            std::vector<T> solve(std::uint8_t solver);
+
 
             ~libnum();
         private:
