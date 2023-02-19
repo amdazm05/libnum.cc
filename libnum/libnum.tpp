@@ -25,9 +25,14 @@ namespace mathcc
         {static_cast<decltype(type)>(type)}->std::integral;
     };
     
+    template <typename T>
+    concept _FloatingPointChk = requires(T type)
+    {
+        {static_cast<decltype(type)>(type)}->std::floating_point;
+    };
 
     template <class T>
-    requires _IntegralChk<T>
+    requires _IntegralChk<T> || _FloatingPointChk<T>
     class libnum
     {
         public:
@@ -49,14 +54,14 @@ namespace mathcc
     };
 
     template<class T>
-    requires _IntegralChk<T>
+    requires _IntegralChk<T> || _FloatingPointChk<T>
     libnum<T>::libnum()
     {
         // Default constructor
     }
 
     template<class T>
-    requires _IntegralChk<T>
+    requires _IntegralChk<T> || _FloatingPointChk<T>
     libnum<T>::libnum(std::vector<T> &A,std::vector<T> &B,std::pair<int,int> &&Adim, std::pair<int,int> &&Bdim)
     {
         //Reserve something for the solution
@@ -68,7 +73,7 @@ namespace mathcc
     }
 
     template<class T>
-    requires _IntegralChk<T>
+    requires _IntegralChk<T> || _FloatingPointChk<T>
     libnum<T>::libnum(std::initializer_list<T> && A,std::initializer_list<T> && B, std::pair<int,int> && Adim, std::pair<int,int> && Bdim)
     {
         // following a Row into column convention 
@@ -82,7 +87,7 @@ namespace mathcc
     }
 
     template<class T>
-    requires _IntegralChk<T>
+    requires _IntegralChk<T> || _FloatingPointChk<T>
     std::vector<T> libnum<T>::solve()
     {
         //Inefficient
@@ -143,7 +148,7 @@ namespace mathcc
     }
 
     template<class T>
-    requires _IntegralChk<T>
+    requires _IntegralChk<T> || _FloatingPointChk<T>
     libnum<T>::~libnum()
     {
         

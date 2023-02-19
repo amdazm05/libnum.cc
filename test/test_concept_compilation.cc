@@ -11,6 +11,11 @@ int main()
     mathcc::libnum<char> d;
 
     mathcc::libnum<int> f({1,2,3,4,5,6},{1,2,3,4,5,6},{2,3},{2,3});
+    mathcc::libnum<double> dflt;
+    mathcc::libnum<double> dflti({1.1,1.2,1.5,1.7},{1.4,1.5},{2,2},{2,1});
+
+    mathcc::libnum<float> fflt;
+    mathcc::libnum<float> fflti({1.1,1.2,1.5,1.7},{1.4,1.5},{2,2},{2,1});
 
     std::vector<short> A = {1,2,3,4,5,6};
     std::vector<short> B = {1,2,3,4,5,6};
