@@ -20,11 +20,18 @@ int main()
     std::vector<short> A = {1,2,3,4,5,6};
     std::vector<short> B = {1,2,3,4,5,6};
 
-
+    std::cout<<"INTEGERAL POINT RESULTS"<<std::endl;
     mathcc::libnum<short> e(A,B,{1,3},{1,3});
     mathcc::libnum<int> g({1,2,3,4,5,6},{1,2,3,4,5,6},{1,2},{1,2});
     mathcc::libnum<int> h({1,2,6,4},{5,13},{2,2},{2,1});
     std::vector<int> sol = h.solve();
     std::for_each(sol.begin(),sol.end(),[](int i){std::cout<<i<<" "<<std::endl;});
+
+    std::cout<<"FLOATING POINT RESULTS"<<std::endl;
+    mathcc::libnum<float> hf({1,2,6,4},{5,13},{2,2},{2,1});
+    std::vector<float> solf = hf.solve();
+    std::for_each(solf.begin(),solf.end(),[](float i){std::cout<<i<<" "<<std::endl;});
+
+
     return 0;
 }

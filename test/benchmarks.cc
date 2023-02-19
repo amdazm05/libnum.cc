@@ -34,4 +34,17 @@ static void BENCH_MARK_SOLVE_BASIC(benchmark::State& state)
 BENCHMARK(BENCH_MARK_SOLVE_BASIC)->Iterations(200000);
 
 
+static void BENCH_MARK_SOLVE_FLOATS(benchmark::State& state) 
+{
+  std::vector<float> sol;
+  for (auto _ : state)
+  {
+    mathcc::libnum<float> h({1,2,6,4},{5,13},{2,2},{2,1});
+    sol = h.solve();
+  }
+}
+
+BENCHMARK(BENCH_MARK_SOLVE_FLOATS)->Iterations(200000);
+
+
 BENCHMARK_MAIN();
