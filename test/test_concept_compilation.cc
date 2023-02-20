@@ -10,7 +10,7 @@ int main()
     mathcc::libnum<long long> c;
     mathcc::libnum<char> d;
 
-    mathcc::libnum<int> f({1,2,3,4,5,6},{1,2,3,4,5,6},{2,3},{2,3});
+    mathcc::libnum<int> f({1,2,3,4,5,6},{1,2,3,4,5,6},{2,2},{2,3});
     mathcc::libnum<double> dflt;
     mathcc::libnum<double> dflti({1.1,1.2,1.5,1.7},{1.4,1.5},{2,2},{2,1});
 
@@ -21,8 +21,8 @@ int main()
     std::vector<short> B = {1,2,3,4,5,6};
 
     std::cout<<"INTEGERAL POINT RESULTS"<<std::endl;
-    mathcc::libnum<short> e(A,B,{1,3},{1,3});
-    mathcc::libnum<int> g({1,2,3,4,5,6},{1,2,3,4,5,6},{1,2},{1,2});
+    mathcc::libnum<short> e(A,B,{3,3},{1,3});
+    mathcc::libnum<int> g({1,2,3,4,5,6},{1,2,3,4,5,6},{2,2},{1,2});
     mathcc::libnum<int> h({1,2,6,4},{5,13},{2,2},{2,1});
     std::vector<int> sol = h.solve();
     std::for_each(sol.begin(),sol.end(),[](int i){std::cout<<i<<" "<<std::endl;});

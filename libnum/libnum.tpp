@@ -1,3 +1,8 @@
+// For vectorisations
+
+
+// Is an arm platform and supports XM neon instructions
+
 #ifndef  _LIBNUM
 #define  _LIBNUM
 #include <vector>
@@ -7,6 +12,21 @@
 #include <string>
 #include <stdexcept>
 #include <type_traits>
+
+
+#if defined __MMX__ && defined __SSE__
+    #include <immintrin.h>
+#else
+    #warning "System does not have any vector instructions (SSE and MMX instructions x86)"
+#endif
+
+#ifdef _XM_ARM_NEON_INTRINSICS_
+    // Add neon includes
+    #include <arm_neon.h>
+#else
+    #warning "System does not have any vector instructions (ARM Neon)"
+#endif
+
 
 namespace mathcc
 {
@@ -40,6 +60,7 @@ namespace mathcc
             libnum(std::vector<T> &A,std::vector<T> &B,std::pair<int,int> &&Adim, std::pair<int,int> &&Bdim);
             libnum(std::initializer_list<T> &&A,std::initializer_list<T> &&B,std::pair<int,int> &&Adim, std::pair<int,int> &&Bdim);
             std::vector<T> solve();
+            std::vector<T> solve_vectorised();
             std::vector<T> solve(std::uint8_t solver);
 
 
@@ -64,6 +85,11 @@ namespace mathcc
     requires _IntegralChk<T> || _FloatingPointChk<T>
     libnum<T>::libnum(std::vector<T> &A,std::vector<T> &B,std::pair<int,int> &&Adim, std::pair<int,int> &&Bdim)
     {
+        // Check for square matrix 
+        if(Adim.first != Adim.second)
+        {
+            throw std::invalid_argument("\"A\" should be a square matrix for a solution to exist");
+        }
         //Reserve something for the solution
         _x.resize(Bdim.first * Bdim.second);
         _A =std::move(A);
@@ -76,6 +102,11 @@ namespace mathcc
     requires _IntegralChk<T> || _FloatingPointChk<T>
     libnum<T>::libnum(std::initializer_list<T> && A,std::initializer_list<T> && B, std::pair<int,int> && Adim, std::pair<int,int> && Bdim)
     {
+        // Check for square matrix 
+        if(Adim.first != Adim.second)
+        {
+            throw std::invalid_argument("\"A\" should be a square matrix for a solution to exist");
+        }
         // following a Row into column convention 
         // the missing terms have the same size as the vector X that is to be computed
         _x.resize(Bdim.first * Bdim.second);
@@ -90,8 +121,6 @@ namespace mathcc
     requires _IntegralChk<T> || _FloatingPointChk<T>
     std::vector<T> libnum<T>::solve()
     {
-        //Inefficient
-
         if (Adim.second != Bdim.first)
         {
             throw std::invalid_argument("Invalid dimensions: A has " + std::to_string(Adim.second) + " columns, B has " + std::to_string(Bdim.first) + " rows");
@@ -144,6 +173,17 @@ namespace mathcc
             }
             _x[i] = (_B[i] - sum) / _A[i * Adim.second + i];
         }
+        return _x;
+    }
+
+    template<class T>
+    requires _IntegralChk<T> || _FloatingPointChk<T>
+    std::vector<T> libnum<T>::solve_vectorised()
+    {
+        // Solve using x86 intrinsics
+        #if defined __MMX__ && defined __SSE__
+            
+        #endif 
         return _x;
     }
 
