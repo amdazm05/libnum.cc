@@ -1,8 +1,3 @@
-// For vectorisations
-
-
-// Is an arm platform and supports XM neon instructions
-
 #ifndef  _LIBNUM
 #define  _LIBNUM
 #include <vector>
@@ -182,6 +177,30 @@ namespace mathcc
     {
         // Solve using x86 intrinsics
         #if defined __MMX__ && defined __SSE__
+        if(Adim.first > 4)
+        {
+            //32 bytes 
+            __m256 A_vals_avx_;
+            __m256 B_vals_avx_;
+
+            for(int i = 0 ; i < Adim.second)
+            {
+                
+            }
+        }
+
+        else
+        {
+            // 16 bytes 
+            __m128i A_vals_avx_;
+            __m128i B_vals_avx_;
+
+            for(int i = 0 ; i < Adim.second; i+=4)
+            {
+                A_vals_avx = _mm_loadu_si32(_A[i]);
+                B_vals_avx = _mm_loadu_si32(_B[i]);
+            }
+        }
             
         #endif 
         return _x;
