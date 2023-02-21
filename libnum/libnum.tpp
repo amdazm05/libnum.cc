@@ -181,7 +181,6 @@ namespace mathcc
         {
             //32 bytes 
             __m256 A_vals_avx_;
-            __m256 B_vals_avx_;
 
             for(int i = 0 ; i < Adim.second; i+=8)
             {
@@ -192,13 +191,23 @@ namespace mathcc
         else
         {
             // 16 bytes 
-            __m128i A_vals_avx_;
-            __m128i B_vals_avx_;
+            __m128 A_vals_avx_;
+            __m128 A_vals_avx_tmp;
+            __m128 A_vals_prev_row;
 
-            for(int i = 0 ; i < Adim.second; i+=4)
+            for(int i = 0 ; i <(Adim.first * Adim.second); i+=4)
             {
-                A_vals_avx_ = _mm_loadu_si32(&_A[i]);
-                B_vals_avx_ = _mm_loadu_si32(&_B[i]);
+                A_vals_avx_ = _mm_load_ps((float_t*)(&_A[i]));
+                A_vals_avx_tmp = A_vals_avx_;
+                for (int j = i+1; j < Adim.first*Adim.second ; j+=1)
+                {
+                    double scalar_mul = -(_A[((i+j)*Adim.second)])/(_A[(i)*(Adim.second)]);
+                    __m128 scalar_v = _mm_set1_ps(scalar_mul);
+                    A_vals_avx_tmp =_mm_mul_ps(A_vals_avx_, scalar_v);
+                    A_vals_prev_row = _mm_load_ps((float_t*)&_A[((i+j)*Adim.second)]);
+                    A_vals_prev_row = _mm_add_ps(A_vals_avx_tmp,A_vals_prev_row);
+                    _mm_storeu_si32(&_A[((i+j)*Adim.second)], (__m128i)A_vals_prev_row);
+                }
             }
         }
             

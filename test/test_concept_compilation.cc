@@ -32,6 +32,7 @@ int main()
     std::vector<float> solf = hf.solve();
     std::for_each(solf.begin(),solf.end(),[](float i){std::cout<<i<<" "<<std::endl;});
 
-
+    mathcc::libnum<int> h1({1,2,6,4,5,4,5,3,4,2,1,7,8,9,0,12},{5,13,12,11},{4,4},{2,1});
+    h1.solve_vectorised();
     return 0;
 }
