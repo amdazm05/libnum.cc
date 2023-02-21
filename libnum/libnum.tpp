@@ -183,7 +183,7 @@ namespace mathcc
             __m256 A_vals_avx_;
             __m256 B_vals_avx_;
 
-            for(int i = 0 ; i < Adim.second)
+            for(int i = 0 ; i < Adim.second; i+=8)
             {
                 
             }
@@ -197,8 +197,8 @@ namespace mathcc
 
             for(int i = 0 ; i < Adim.second; i+=4)
             {
-                A_vals_avx = _mm_loadu_si32(_A[i]);
-                B_vals_avx = _mm_loadu_si32(_B[i]);
+                A_vals_avx_ = _mm_loadu_si32(&_A[i]);
+                B_vals_avx_ = _mm_loadu_si32(&_B[i]);
             }
         }
             
