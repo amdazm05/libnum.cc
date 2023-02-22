@@ -1,5 +1,6 @@
 #ifndef  _LIBNUM
 #define  _LIBNUM
+
 #include <vector>
 #include <math.h>
 #include <iostream>
@@ -7,7 +8,7 @@
 #include <string>
 #include <stdexcept>
 #include <type_traits>
-
+#include <algorithm>
 
 #if defined __MMX__ && defined __SSE__
     #include <immintrin.h>
@@ -65,6 +66,10 @@ namespace mathcc
             std::vector<T> _A;
             std::vector<T> _B;
 
+            std::vector<double> _xC;
+            std::vector<double> _AC;
+            std::vector<double> _BC;
+
             std::pair<int,int> Adim;
             std::pair<int,int> Bdim;
     };
@@ -85,12 +90,40 @@ namespace mathcc
         {
             throw std::invalid_argument("\"A\" should be a square matrix for a solution to exist");
         }
-        //Reserve something for the solution
-        _x.resize(Bdim.first * Bdim.second);
-        _A =std::move(A);
-        _B =std::move(B);
-        this->Adim= std::move(Adim);
-        this->Bdim= std::move(Bdim);
+
+        else
+        {
+            if constexpr (std::is_integral<T>::value)
+            {
+                _xC.resize(Bdim.first * Bdim.second);
+                _AC.resize(Adim.first * Adim.second);
+                _BC.resize(Bdim.first * Bdim.second);
+
+                std::transform(std::make_move_iterator(A.begin()),std::make_move_iterator(A.end()),_AC.begin(),
+                    [](T && a)
+                    {   
+                        return double(a);
+                    });
+            }
+
+            else if (std::is_floating_point<T>::value)
+            {
+                //Reserve something for the solution
+                _x.resize(Bdim.first * Bdim.second);
+                _A =std::move(A);
+                _B =std::move(B);
+                this->Adim= std::move(Adim);
+                this->Bdim= std::move(Bdim);
+            }
+
+            else
+            {
+                // Pretty much never the case here
+                // put placing for the case of completeness
+            }
+        }
+        
+            
     }
 
     template<class T>
