@@ -99,10 +99,15 @@ namespace mathcc
                 _AC.resize(Adim.first * Adim.second);
                 _BC.resize(Bdim.first * Bdim.second);
 
-                std::transform(std::make_move_iterator(A.begin()),std::make_move_iterator(A.end()),_AC.begin(),
+                std::transform(std::make_move_iterator(A.begin()),std::make_move_iterator(A.end()),std::back_inserter(_AC),
                     [](T && a)
                     {   
-                        return double(a);
+                        return static_cast<double>(std::move(a));
+                    });
+                std::transform(std::make_move_iterator(B.begin()),std::make_move_iterator(B.end()),std::back_inserter(_BC),
+                    [](T && a)
+                    {   
+                        return static_cast<double>(std::move(a));
                     });
             }
 
