@@ -23,7 +23,35 @@
     #warning "System does not have any vector instructions (ARM Neon)"
 #endif
 
+template <typename T>
+concept _IntegralChk = requires(T type)
+{
+    {static_cast<decltype(type)>(type)}->std::integral;
+};
 
+template <typename T>
+concept _FloatingPointChk = requires(T type)
+{
+    {static_cast<decltype(type)>(type)}->std::floating_point;
+};
+
+namespace conversion_utils
+{
+    template<typename T>
+    requires _IntegralChk<T>
+    inline float _convert_integeral_to_float(T && a)
+    {
+        return std::move(a); 
+    }
+
+    template<typename T>
+    requires _IntegralChk<T>
+    inline double _convert_integeral_to_double(T && a)
+    {
+        return std::move(a); 
+    }
+
+}
 namespace mathcc
 {
     enum Solvers :  uint8_t 
@@ -34,19 +62,7 @@ namespace mathcc
         GAUS_JORDAN,
         MATRIX_INVERSION
     };
-
-    template <typename T>
-    concept _IntegralChk = requires(T type)
-    {
-        {static_cast<decltype(type)>(type)}->std::integral;
-    };
     
-    template <typename T>
-    concept _FloatingPointChk = requires(T type)
-    {
-        {static_cast<decltype(type)>(type)}->std::floating_point;
-    };
-
     template <class T>
     requires _IntegralChk<T> || _FloatingPointChk<T>
     class libnum
@@ -59,16 +75,19 @@ namespace mathcc
             std::vector<T> solve_vectorised();
             std::vector<T> solve(std::uint8_t solver);
 
-
             ~libnum();
         private:
             std::vector<T> _x;
             std::vector<T> _A;
             std::vector<T> _B;
 
-            std::vector<double> _xC;
-            std::vector<double> _AC;
-            std::vector<double> _BC;
+            std::vector<float> _xC4;
+            std::vector<float> _AC4;
+            std::vector<float> _BC4;
+
+            std::vector<double> _xC8;
+            std::vector<double> _AC8;
+            std::vector<double> _BC8;
 
             std::pair<int,int> Adim;
             std::pair<int,int> Bdim;
@@ -93,24 +112,26 @@ namespace mathcc
 
         else
         {
-            if constexpr (std::is_integral<T>::value)
+            if constexpr (std::is_integral<T>::value && sizeof(T)<=4)
             {
-                _xC.resize(Bdim.first * Bdim.second);
-                _AC.resize(Adim.first * Adim.second);
-                _BC.resize(Bdim.first * Bdim.second);
-
-                std::transform(std::make_move_iterator(A.begin()),std::make_move_iterator(A.end()),std::back_inserter(_AC),
-                    [](T && a)
-                    {   
-                        return static_cast<double>(std::move(a));
-                    });
-                std::transform(std::make_move_iterator(B.begin()),std::make_move_iterator(B.end()),std::back_inserter(_BC),
-                    [](T && a)
-                    {   
-                        return static_cast<double>(std::move(a));
-                    });
+                _xC4.resize(Bdim.first * Bdim.second);
+                _AC4.reserve(Adim.first * Adim.second);
+                _BC4.reserve(Bdim.first * Bdim.second);
+                std::transform(std::make_move_iterator(A.begin()),std::make_move_iterator(A.end()),std::back_inserter(_AC4), &conversion_utils::_convert_integeral_to_float<T>);
+                std::transform(std::make_move_iterator(B.begin()),std::make_move_iterator(B.end()),std::back_inserter(_BC4), &conversion_utils::_convert_integeral_to_float<T>);
+                _A =std::move(A);
+                _B =std::move(B);
             }
-
+            else if (std::is_integral<T>::value && sizeof(T)>4)
+            {
+                _xC8.resize(Bdim.first * Bdim.second);
+                _AC8.reserve(Adim.first * Adim.second);
+                _BC8.reserve(Bdim.first * Bdim.second);
+                std::transform(std::make_move_iterator(A.begin()),std::make_move_iterator(A.end()),std::back_inserter(_AC8), &conversion_utils::_convert_integeral_to_double<T>);
+                std::transform(std::make_move_iterator(B.begin()),std::make_move_iterator(B.end()),std::back_inserter(_BC8), &conversion_utils::_convert_integeral_to_double<T>);
+                _A =std::move(A);
+                _B =std::move(B);
+            }
             else if (std::is_floating_point<T>::value)
             {
                 //Reserve something for the solution
