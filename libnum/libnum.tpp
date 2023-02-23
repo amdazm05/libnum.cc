@@ -39,16 +39,16 @@ namespace conversion_utils
 {
     template<typename T>
     requires _IntegralChk<T>
-    inline float _convert_integeral_to_float(T && a)
+    float _convert_integeral_to_float(T && a)
     {
-        return std::move(a); 
+        return static_cast<float>(std::move(a)); 
     }
 
     template<typename T>
     requires _IntegralChk<T>
-    inline double _convert_integeral_to_double(T && a)
+    double _convert_integeral_to_double(T && a)
     {
-        return std::move(a); 
+        return static_cast<double>(std::move(a)); 
     }
 
 }
@@ -122,7 +122,7 @@ namespace mathcc
                 _A =std::move(A);
                 _B =std::move(B);
             }
-            else if (std::is_integral<T>::value && sizeof(T)>4)
+            else if constexpr (std::is_integral<T>::value && sizeof(T)>4)
             {
                 _xC8.resize(Bdim.first * Bdim.second);
                 _AC8.reserve(Adim.first * Adim.second);
@@ -132,7 +132,7 @@ namespace mathcc
                 _A =std::move(A);
                 _B =std::move(B);
             }
-            else if (std::is_floating_point<T>::value)
+            else if constexpr (std::is_floating_point<T>::value)
             {
                 //Reserve something for the solution
                 _x.resize(Bdim.first * Bdim.second);
