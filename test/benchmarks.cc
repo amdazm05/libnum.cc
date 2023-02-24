@@ -5,7 +5,7 @@ static void BENCH_MARK_CONSTRUCTOR_INITALISERLIST_INPUT(benchmark::State& state)
 {
   for (auto _ : state)
   {
-    mathcc::libnum<int> f({1,2,3,4,5,6,7,8,9,10,11,12},{1,2,3,4,5,6,7,8,9,10,11,12},{4,4},{4,3});    
+    mathcc::libnum<int> f({1,2,3,4,5,6},{1,2,3,4,5,6},{3,3},{3,2});    
   }
 }
 BENCHMARK(BENCH_MARK_CONSTRUCTOR_INITALISERLIST_INPUT)->Iterations(200000);
