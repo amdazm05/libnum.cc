@@ -51,6 +51,20 @@ namespace conversion_utils
         return static_cast<double>(std::move(a)); 
     }
 
+    template<typename T>
+    requires _IntegralChk<T>
+    float _convert_constintegeral_to_float(const T &a)
+    {
+        return static_cast<float>(std::move(a)); 
+    }
+
+    template<typename T>
+    requires _IntegralChk<T>
+    double _convert_constintegeral_to_double(const T &a)
+    {
+        return static_cast<double>(std::move(a)); 
+    }
+
 }
 namespace mathcc
 {
@@ -138,8 +152,6 @@ namespace mathcc
                 _x.resize(Bdim.first * Bdim.second);
                 _A =std::move(A);
                 _B =std::move(B);
-                this->Adim= std::move(Adim);
-                this->Bdim= std::move(Bdim);
             }
 
             else
@@ -147,6 +159,9 @@ namespace mathcc
                 // Pretty much never the case here
                 // put placing for the case of completeness
             }
+
+            this->Adim= std::move(Adim);
+            this->Bdim= std::move(Bdim);
         }
         
             
@@ -163,9 +178,38 @@ namespace mathcc
         }
         // following a Row into column convention 
         // the missing terms have the same size as the vector X that is to be computed
-        _x.resize(Bdim.first * Bdim.second);
-        _A = std::move(A);
-        _B = std::move(B);
+
+        if constexpr (std::is_integral<T>::value && sizeof(T)<=4)
+        {
+            _x.resize(Bdim.first * Bdim.second);
+            _xC4.resize(Bdim.first * Bdim.second);
+            _AC4.reserve(Adim.first * Adim.second);
+            _BC4.reserve(Bdim.first * Bdim.second);
+            std::transform(A.begin(),A.end(),std::back_inserter(_AC4), &conversion_utils::_convert_constintegeral_to_float<T>);
+            std::transform(B.begin(),B.end(),std::back_inserter(_BC4), &conversion_utils::_convert_constintegeral_to_float<T>);
+            _A =std::move(A);
+            _B =std::move(B);
+        }
+
+        else if constexpr (std::is_integral<T>::value && sizeof(T)>4)
+        {
+            _x.resize(Bdim.first * Bdim.second);
+            _xC8.resize(Bdim.first * Bdim.second);
+            _AC8.reserve(Adim.first * Adim.second);
+            _BC8.reserve(Bdim.first * Bdim.second);
+            std::transform(A.begin(),A.end(),std::back_inserter(_AC8), &conversion_utils::_convert_constintegeral_to_double<T>);
+            std::transform(B.begin(),B.end(),std::back_inserter(_BC8), &conversion_utils::_convert_constintegeral_to_double<T>);
+            _A =std::move(A);
+            _B =std::move(B);
+        }
+
+        else
+        {
+            _x.resize(Bdim.first * Bdim.second);
+            _A = std::move(A);
+            _B = std::move(B);
+        }
+        
 
         this->Adim= std::move(Adim);
         this->Bdim= std::move(Bdim);
@@ -252,20 +296,30 @@ namespace mathcc
             // 16 bytes 
             __m128 A_vals_avx_;
             __m128 A_vals_avx_tmp;
-            __m128 A_vals_prev_row;
+            __m128 A_vals_next_row;
 
-            for(int i = 0 ; i <(Adim.first * Adim.second); i+=4)
+            // A has dimension n x m where n is the number of rows n x numbder of columns m
+            // Loop runs for n-1 times 
+            // Loop increments by m times each time as m columns 
+            for(int i = 0 ; i <Adim.first; i+=1)
             {
-                A_vals_avx_ = _mm_load_ps((float_t*)(&_A[i]));
-                A_vals_avx_tmp = A_vals_avx_;
-                for (int j = i+1; j < Adim.first*Adim.second ; j+=1)
+                A_vals_avx_ = _mm_load_ps((&_AC4[i*Adim.first]));
+                float scalar_row = 1/(_AC4[i*(Adim.second)+i]);
+                _BC4[i]= _BC4[i]*scalar_row;
+                __m128 scalar_row_v = _mm_set1_ps(scalar_row);
+                A_vals_avx_ = _mm_mul_ps(A_vals_avx_,scalar_row_v);
+                _mm_store_ps(&_AC4[(i*Adim.second)], A_vals_avx_);
+
+                for (int j = i+1; j < Adim.first ; j+=1)
                 {
-                    double scalar_mul = -(_A[((i+j)*Adim.second)])/(_A[(i)*(Adim.second)]);
+                    // Reduced Row echleon form
+                    float scalar_mul = -(_AC4[(j)*(Adim.second)+i])/(_AC4[i*(Adim.second)+i]);
                     __m128 scalar_v = _mm_set1_ps(scalar_mul);
+                    _BC4[j]= _BC4[j] + scalar_mul * _BC4[i];
                     A_vals_avx_tmp =_mm_mul_ps(A_vals_avx_, scalar_v);
-                    A_vals_prev_row = _mm_load_ps((float_t*)&_A[((i+j)*Adim.second)]);
-                    A_vals_prev_row = _mm_add_ps(A_vals_avx_tmp,A_vals_prev_row);
-                    _mm_storeu_si32(&_A[((i+j)*Adim.second)], (__m128i)A_vals_prev_row);
+                    A_vals_next_row = _mm_load_ps(&_AC4[j*Adim.second]);
+                    A_vals_next_row = _mm_add_ps(A_vals_avx_tmp,A_vals_next_row);
+                    _mm_store_ps(&_AC4[(j*Adim.second)], A_vals_next_row);
                 }
             }
         }
