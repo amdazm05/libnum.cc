@@ -57,27 +57,38 @@ BENCHMARK(BENCH_MARK_CONTRUCTOR_VECTOR_INPUT_8BYTE_FLOATINGPOINT)->Iterations(20
 
 static void BENCH_MARK_SOLVE_UNOPTIMISED_GAUSIAN_INEGERAL(benchmark::State& state) 
 {
-  std::vector<int> sol;
-  mathcc::libnum<int> h({1,2,6,4},{5,13},{2,2},{2,1});
+  mathcc::libnum<int> h({1,2,6,4,5,4,5,3,4,2,1,7,8,9,0,12},{5,13,12,11},{4,4},{4,1});
   for (auto _ : state)
   {
-    sol = h.solve();
+    h.solve();
   }
 }
 BENCHMARK(BENCH_MARK_SOLVE_UNOPTIMISED_GAUSIAN_INEGERAL)->Iterations(200000);
 
+static void BENCH_MARK_SOLVE_UNOPTIMISED_GAUSIAN_INTEGERAL_VECTORISED_SSE(benchmark::State& state) 
+{
+  mathcc::libnum<int> h1({1,2,6,4,5,4,5,3,4,2,1,7,8,9,0,12},{5,13,12,11},{4,4},{4,1});
+  for (auto _ : state)
+  {
+    h1.solve_vectorised();
+  }
+}
+BENCHMARK(BENCH_MARK_SOLVE_UNOPTIMISED_GAUSIAN_INTEGERAL_VECTORISED_SSE)->Iterations(200000);
 
 static void BENCH_MARK_SOLVE_UNOPTIMISED_GAUSIAN_FLOATS(benchmark::State& state) 
 {
-  std::vector<float> sol;
-  mathcc::libnum<float> h({1,2,6,4},{5,13},{2,2},{2,1});
+  mathcc::libnum<float> h({1,2,6,4,5,4,5,3,4,2,1,7,8,9,0,12},{5,13,12,11},{4,4},{4,1});
   for (auto _ : state)
   {
-    sol = h.solve();
+    h.solve();
   }
 }
 
 BENCHMARK(BENCH_MARK_SOLVE_UNOPTIMISED_GAUSIAN_FLOATS)->Iterations(200000);
 
 
+
+
 BENCHMARK_MAIN();
+
+
