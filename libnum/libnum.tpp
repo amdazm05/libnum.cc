@@ -301,6 +301,8 @@ namespace mathcc
             // A has dimension n x m where n is the number of rows n x numbder of columns m
             // Loop runs for n-1 times 
             // Loop increments by m times each time as m columns 
+            
+            //1-// Reduced Row echleon form
             for(int i = 0 ; i <Adim.first; i+=1)
             {
                 A_vals_avx_ = _mm_load_ps((&_AC4[i*Adim.first]));
@@ -312,7 +314,6 @@ namespace mathcc
 
                 for (int j = i+1; j < Adim.first ; j+=1)
                 {
-                    // Reduced Row echleon form
                     float scalar_mul = -(_AC4[(j)*(Adim.second)+i])/(_AC4[i*(Adim.second)+i]);
                     __m128 scalar_v = _mm_set1_ps(scalar_mul);
                     _BC4[j]= _BC4[j] + scalar_mul * _BC4[i];
@@ -320,6 +321,18 @@ namespace mathcc
                     A_vals_next_row = _mm_load_ps(&_AC4[j*Adim.second]);
                     A_vals_next_row = _mm_add_ps(A_vals_avx_tmp,A_vals_next_row);
                     _mm_store_ps(&_AC4[(j*Adim.second)], A_vals_next_row);
+                }
+            }
+
+            // 2- Back substituition
+            // run a loop in reverse start with the last row
+            // Since we have one solution we place the last value of B into the last value of x 
+            for(int i = Adim.first ; i > 0 ; i-=1)
+            {
+                _xC4[i-1]= _BC4[i-1];
+                for(int j = 0; j<(Adim.second - i) ;j+=1)
+                {
+                    _xC4[i-1] = _xC4[i-1] - _AC4[i*Adim.second-1-j]*_xC4[Bdim.first-1-j];
                 }
             }
         }
