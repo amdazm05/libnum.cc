@@ -23,7 +23,49 @@
     #warning "System does not have any vector instructions (ARM Neon)"
 #endif
 
+template <typename T>
+concept _IntegralChk = requires(T type)
+{
+    {static_cast<decltype(type)>(type)}->std::integral;
+};
 
+template <typename T>
+concept _FloatingPointChk = requires(T type)
+{
+    {static_cast<decltype(type)>(type)}->std::floating_point;
+};
+
+namespace conversion_utils
+{
+    template<typename T>
+    requires _IntegralChk<T>
+    float _convert_integeral_to_float(T && a)
+    {
+        return static_cast<float>(std::move(a)); 
+    }
+
+    template<typename T>
+    requires _IntegralChk<T>
+    double _convert_integeral_to_double(T && a)
+    {
+        return static_cast<double>(std::move(a)); 
+    }
+
+    template<typename T>
+    requires _IntegralChk<T>
+    float _convert_constintegeral_to_float(const T &a)
+    {
+        return static_cast<float>(std::move(a)); 
+    }
+
+    template<typename T>
+    requires _IntegralChk<T>
+    double _convert_constintegeral_to_double(const T &a)
+    {
+        return static_cast<double>(std::move(a)); 
+    }
+
+}
 namespace mathcc
 {
     enum Solvers :  uint8_t 
@@ -34,19 +76,7 @@ namespace mathcc
         GAUS_JORDAN,
         MATRIX_INVERSION
     };
-
-    template <typename T>
-    concept _IntegralChk = requires(T type)
-    {
-        {static_cast<decltype(type)>(type)}->std::integral;
-    };
     
-    template <typename T>
-    concept _FloatingPointChk = requires(T type)
-    {
-        {static_cast<decltype(type)>(type)}->std::floating_point;
-    };
-
     template <class T>
     requires _IntegralChk<T> || _FloatingPointChk<T>
     class libnum
@@ -59,16 +89,19 @@ namespace mathcc
             std::vector<T> solve_vectorised();
             std::vector<T> solve(std::uint8_t solver);
 
-
             ~libnum();
         private:
             std::vector<T> _x;
             std::vector<T> _A;
             std::vector<T> _B;
 
-            std::vector<double> _xC;
-            std::vector<double> _AC;
-            std::vector<double> _BC;
+            std::vector<float> _xC4;
+            std::vector<float> _AC4;
+            std::vector<float> _BC4;
+
+            std::vector<double> _xC8;
+            std::vector<double> _AC8;
+            std::vector<double> _BC8;
 
             std::pair<int,int> Adim;
             std::pair<int,int> Bdim;
@@ -93,32 +126,32 @@ namespace mathcc
 
         else
         {
-            if constexpr (std::is_integral<T>::value)
+            if constexpr (std::is_integral<T>::value && sizeof(T)<=4)
             {
-                _xC.resize(Bdim.first * Bdim.second);
-                _AC.resize(Adim.first * Adim.second);
-                _BC.resize(Bdim.first * Bdim.second);
-
-                std::transform(std::make_move_iterator(A.begin()),std::make_move_iterator(A.end()),std::back_inserter(_AC),
-                    [](T && a)
-                    {   
-                        return static_cast<double>(std::move(a));
-                    });
-                std::transform(std::make_move_iterator(B.begin()),std::make_move_iterator(B.end()),std::back_inserter(_BC),
-                    [](T && a)
-                    {   
-                        return static_cast<double>(std::move(a));
-                    });
+                _xC4.resize(Bdim.first * Bdim.second);
+                _AC4.reserve(Adim.first * Adim.second);
+                _BC4.reserve(Bdim.first * Bdim.second);
+                std::transform(std::make_move_iterator(A.begin()),std::make_move_iterator(A.end()),std::back_inserter(_AC4), &conversion_utils::_convert_integeral_to_float<T>);
+                std::transform(std::make_move_iterator(B.begin()),std::make_move_iterator(B.end()),std::back_inserter(_BC4), &conversion_utils::_convert_integeral_to_float<T>);
+                _A =std::move(A);
+                _B =std::move(B);
             }
-
-            else if (std::is_floating_point<T>::value)
+            else if constexpr (std::is_integral<T>::value && sizeof(T)>4)
+            {
+                _xC8.resize(Bdim.first * Bdim.second);
+                _AC8.reserve(Adim.first * Adim.second);
+                _BC8.reserve(Bdim.first * Bdim.second);
+                std::transform(std::make_move_iterator(A.begin()),std::make_move_iterator(A.end()),std::back_inserter(_AC8), &conversion_utils::_convert_integeral_to_double<T>);
+                std::transform(std::make_move_iterator(B.begin()),std::make_move_iterator(B.end()),std::back_inserter(_BC8), &conversion_utils::_convert_integeral_to_double<T>);
+                _A =std::move(A);
+                _B =std::move(B);
+            }
+            else if constexpr (std::is_floating_point<T>::value)
             {
                 //Reserve something for the solution
                 _x.resize(Bdim.first * Bdim.second);
                 _A =std::move(A);
                 _B =std::move(B);
-                this->Adim= std::move(Adim);
-                this->Bdim= std::move(Bdim);
             }
 
             else
@@ -126,6 +159,9 @@ namespace mathcc
                 // Pretty much never the case here
                 // put placing for the case of completeness
             }
+
+            this->Adim= std::move(Adim);
+            this->Bdim= std::move(Bdim);
         }
         
             
@@ -142,9 +178,38 @@ namespace mathcc
         }
         // following a Row into column convention 
         // the missing terms have the same size as the vector X that is to be computed
-        _x.resize(Bdim.first * Bdim.second);
-        _A = std::move(A);
-        _B = std::move(B);
+
+        if constexpr (std::is_integral<T>::value && sizeof(T)<=4)
+        {
+            _x.resize(Bdim.first * Bdim.second);
+            _xC4.resize(Bdim.first * Bdim.second);
+            _AC4.reserve(Adim.first * Adim.second);
+            _BC4.reserve(Bdim.first * Bdim.second);
+            std::transform(A.begin(),A.end(),std::back_inserter(_AC4), &conversion_utils::_convert_constintegeral_to_float<T>);
+            std::transform(B.begin(),B.end(),std::back_inserter(_BC4), &conversion_utils::_convert_constintegeral_to_float<T>);
+            _A =std::move(A);
+            _B =std::move(B);
+        }
+
+        else if constexpr (std::is_integral<T>::value && sizeof(T)>4)
+        {
+            _x.resize(Bdim.first * Bdim.second);
+            _xC8.resize(Bdim.first * Bdim.second);
+            _AC8.reserve(Adim.first * Adim.second);
+            _BC8.reserve(Bdim.first * Bdim.second);
+            std::transform(A.begin(),A.end(),std::back_inserter(_AC8), &conversion_utils::_convert_constintegeral_to_double<T>);
+            std::transform(B.begin(),B.end(),std::back_inserter(_BC8), &conversion_utils::_convert_constintegeral_to_double<T>);
+            _A =std::move(A);
+            _B =std::move(B);
+        }
+
+        else
+        {
+            _x.resize(Bdim.first * Bdim.second);
+            _A = std::move(A);
+            _B = std::move(B);
+        }
+        
 
         this->Adim= std::move(Adim);
         this->Bdim= std::move(Bdim);
@@ -231,20 +296,43 @@ namespace mathcc
             // 16 bytes 
             __m128 A_vals_avx_;
             __m128 A_vals_avx_tmp;
-            __m128 A_vals_prev_row;
+            __m128 A_vals_next_row;
 
-            for(int i = 0 ; i <(Adim.first * Adim.second); i+=4)
+            // A has dimension n x m where n is the number of rows n x numbder of columns m
+            // Loop runs for n-1 times 
+            // Loop increments by m times each time as m columns 
+            
+            //1-// Reduced Row echleon form
+            for(int i = 0 ; i <Adim.first; i+=1)
             {
-                A_vals_avx_ = _mm_load_ps((float_t*)(&_A[i]));
-                A_vals_avx_tmp = A_vals_avx_;
-                for (int j = i+1; j < Adim.first*Adim.second ; j+=1)
+                A_vals_avx_ = _mm_load_ps((&_AC4[i*Adim.first]));
+                float scalar_row = 1/(_AC4[i*(Adim.second)+i]);
+                _BC4[i]= _BC4[i]*scalar_row;
+                __m128 scalar_row_v = _mm_set1_ps(scalar_row);
+                A_vals_avx_ = _mm_mul_ps(A_vals_avx_,scalar_row_v);
+                _mm_store_ps(&_AC4[(i*Adim.second)], A_vals_avx_);
+
+                for (int j = i+1; j < Adim.first ; j+=1)
                 {
-                    double scalar_mul = -(_A[((i+j)*Adim.second)])/(_A[(i)*(Adim.second)]);
+                    float scalar_mul = -(_AC4[(j)*(Adim.second)+i])/(_AC4[i*(Adim.second)+i]);
                     __m128 scalar_v = _mm_set1_ps(scalar_mul);
+                    _BC4[j]= _BC4[j] + scalar_mul * _BC4[i];
                     A_vals_avx_tmp =_mm_mul_ps(A_vals_avx_, scalar_v);
-                    A_vals_prev_row = _mm_load_ps((float_t*)&_A[((i+j)*Adim.second)]);
-                    A_vals_prev_row = _mm_add_ps(A_vals_avx_tmp,A_vals_prev_row);
-                    _mm_storeu_si32(&_A[((i+j)*Adim.second)], (__m128i)A_vals_prev_row);
+                    A_vals_next_row = _mm_load_ps(&_AC4[j*Adim.second]);
+                    A_vals_next_row = _mm_add_ps(A_vals_avx_tmp,A_vals_next_row);
+                    _mm_store_ps(&_AC4[(j*Adim.second)], A_vals_next_row);
+                }
+            }
+
+            // 2- Back substituition
+            // run a loop in reverse start with the last row
+            // Since we have one solution we place the last value of B into the last value of x 
+            for(int i = Adim.first ; i > 0 ; i-=1)
+            {
+                _xC4[i-1]= _BC4[i-1];
+                for(int j = 0; j<(Adim.second - i) ;j+=1)
+                {
+                    _xC4[i-1] = _xC4[i-1] - _AC4[i*Adim.second-1-j]*_xC4[Bdim.first-1-j];
                 }
             }
         }

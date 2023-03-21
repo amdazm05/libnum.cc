@@ -26,13 +26,17 @@ int main()
     mathcc::libnum<int> h({1,2,6,4},{5,13},{2,2},{2,1});
     std::vector<int> sol = h.solve();
     std::for_each(sol.begin(),sol.end(),[](int i){std::cout<<i<<" "<<std::endl;});
+    
+    std::vector<uint64_t> A1 = {1,2,3,4,5,6};
+    std::vector<uint64_t> B2 = {1,2,3,4,5,6};
+    mathcc::libnum<uint64_t> e1(A1,B2,{3,3},{1,3});
 
     std::cout<<"FLOATING POINT RESULTS"<<std::endl;
     mathcc::libnum<float> hf({1,2,6,4},{5,13},{2,2},{2,1});
     std::vector<float> solf = hf.solve();
     std::for_each(solf.begin(),solf.end(),[](float i){std::cout<<i<<" "<<std::endl;});
 
-    mathcc::libnum<int> h1({1,2,6,4,5,4,5,3,4,2,1,7,8,9,0,12},{5,13,12,11},{4,4},{2,1});
+    mathcc::libnum<int> h1({1,2,6,4,5,4,5,3,4,2,1,7,8,9,0,12},{5,13,12,11},{4,4},{4,1});
     h1.solve_vectorised();
     return 0;
 }
