@@ -264,3 +264,5 @@ namespace mathcc
 };
     
 #endif //_LIBNUM
+
+// https://ocw.mit.edu/courses/18-02sc-multivariable-calculus-fall-2010/f1388eddd0f3047bcfd70cf5da379f78_MIT18_02SC_MNotes_m2.pdf
