@@ -354,3 +354,5 @@ namespace mathcc
 #endif //_LIBNUM
 
 // https://ocw.mit.edu/courses/18-02sc-multivariable-calculus-fall-2010/f1388eddd0f3047bcfd70cf5da379f78_MIT18_02SC_MNotes_m2.pdf
+// https://www.math.ucdavis.edu/~linear/old/notes11.pdf
+// https://www.infona.pl/resource/bwmeta1.element.baztech-2d0927b6-de94-47d2-a9ef-271fc5b810d1/content/partDownload/2206355d-ee62-3555-9ec8-be2ab132e0e0
